@@ -1,0 +1,6 @@
+class RacksError(Exception):
+    ...
+
+
+class NetBoxError(Exception):
+    ...

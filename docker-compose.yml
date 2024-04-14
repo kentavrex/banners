@@ -1,0 +1,66 @@
+version: '3.9'
+
+x-config-tmp: &config-tmp
+    build:
+        context: .
+    env_file: app.env
+    volumes:
+        - ~/.ssh:/root/.ssh-localhost:ro
+        - logs:/var/log
+    user: root
+
+volumes:
+  logs: {}
+  pg_data: {}
+
+services:
+  web:
+    <<: *config-tmp
+    image: web
+    depends_on:
+    - db
+    command: "sh start-dev.sh"
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+    - banners_net
+
+
+  db:
+    image: postgres:12.4-alpine
+    container_name: banners_db
+    ports:
+      - "6432:6432"
+    environment:
+      POSTGRES_DB: banners_db
+      POSTGRES_USER: banners_user
+      POSTGRES_PASSWORD: banners_password
+    volumes:
+      - pg_data:/var/lib/postgresql/dataBanners
+    networks:
+      - banners_net
+    restart: always
+#
+#  redis:
+#    image: redis:alpine
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - banners_net
+#
+#  celery:
+#    build: .
+#    env_file:
+#      - app.env
+#    command: celery -A worker.worker worker --loglevel=info
+#    volumes:
+#      - .:/usr/src/app/
+#    depends_on:
+#      - redis
+#    networks:
+#      - banners_net
+
+networks:
+  banners_net:
+    driver: bridge
